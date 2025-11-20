@@ -1,0 +1,184 @@
+<div class="content-section active" id="history-section">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Historial de Inventarios</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <span class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-archive me-1"></i>Total: <span id="history-count">0</span> inventarios
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-history me-2"></i>Últimos 5 Inventarios
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tienda</th>
+                            <th>Responsable</th>
+                            <th>Items</th>
+                            <th>Escaneados</th>
+                            <th>Discrepancias</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- History data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-2"></i>Tendencia de Discrepancias
+                </div>
+                <div class="card-body">
+                    <div id="discrepancy-chart">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                            <p>Gráfico de tendencias disponible en versiones futuras</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-trophy me-2"></i>Estadísticas del Historial
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="display-4 text-primary" id="avg-accuracy">0%</div>
+                        <small class="text-muted">Precisión Promedio</small>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h5 id="total-inventories">0</h5>
+                            <small class="text-muted">Total Inventarios</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 id="total-items-scanned">0</h5>
+                            <small class="text-muted">Items Escaneados</small>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="exportHistory()">
+                            <i class="fas fa-download me-1"></i>Exportar Historial
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" onclick="clearHistory()">
+                            <i class="fas fa-trash me-1"></i>Limpiar Historial
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>Información
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        El sistema mantiene automáticamente los últimos 5 inventarios realizados.
+                        Los datos más antiguos se eliminan automáticamente.
+                    </p>
+                    <p class="small text-muted">
+                        <i class="fas fa-lightbulb me-1"></i>
+                        Exporte el historial periódicamente para mantener un backup de sus datos.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateHistoryStats() {
+    const history = History.getHistory();
+    
+    $('#history-count').text(history.length);
+    $('#total-inventories').text(history.length);
+    
+    // Calcular estadísticas
+    let totalItemsScanned = 0;
+    let totalAccuracy = 0;
+    
+    history.forEach(inv => {
+        totalItemsScanned += inv.totalScanned || 0;
+        const accuracy = inv.totalItems > 0 ? 
+            Math.round(((inv.totalItems - inv.discrepancies) / inv.totalItems) * 100) : 0;
+        totalAccuracy += accuracy;
+    });
+    
+    $('#total-items-scanned').text(totalItemsScanned);
+    
+    const avgAccuracy = history.length > 0 ? Math.round(totalAccuracy / history.length) : 0;
+    $('#avg-accuracy').text(avgAccuracy + '%');
+    
+    // Actualizar cada 5 segundos
+    setTimeout(updateHistoryStats, 5000);
+}
+
+function exportHistory() {
+    const history = History.getHistory();
+    
+    if (history.length === 0) {
+        Utils.showNotification('No hay historial para exportar', 'warning');
+        return;
+    }
+    
+    const exportData = {
+        historial: history,
+        exportDate: new Date().toISOString(),
+        exportedBy: Auth.getUser()?.name || 'Unknown',
+        system: 'Sistema de Inventario K24'
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `historial_inventarios_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    Utils.showNotification('Historial exportado correctamente', 'success');
+}
+
+function clearHistory() {
+    if (confirm('¿Está seguro de que desea eliminar todo el historial? Esta acción no se puede deshacer.')) {
+        History.inventoryHistory = [];
+        History.saveToStorage();
+        History.updateHistoryTable();
+        updateHistoryStats();
+        
+        Utils.showNotification('Historial eliminado correctamente', 'success');
+    }
+}
+
+// Iniciar actualización cuando se carga la sección
+$(document).ready(function() {
+    if ($('#history-section').hasClass('active')) {
+        updateHistoryStats();
+        History.updateHistoryTable();
+    }
+});
+</script>

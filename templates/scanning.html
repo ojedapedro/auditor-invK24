@@ -1,0 +1,193 @@
+<div class="content-section active" id="scanning-section">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Escaneo de Productos</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button class="btn btn-sm btn-outline-secondary" id="toggle-scan">
+                    <i class="fas fa-play me-1"></i>Iniciar Escaneo
+                </button>
+            </div>
+            <div class="btn-group me-2">
+                <span class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-barcode me-1"></i>Estado: <span id="scanner-status">Inactivo</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-barcode me-2"></i>Escáner</span>
+                    <span class="badge bg-success d-none" id="scan-status">
+                        <i class="fas fa-circle me-1"></i>Escaneando...
+                    </span>
+                </div>
+                <div class="card-body text-center p-5" id="scanner-area">
+                    <div class="mb-4">
+                        <i class="fas fa-barcode fa-5x text-muted"></i>
+                    </div>
+                    <h4>Listo para escanear</h4>
+                    <p class="text-muted mb-4">Haga clic en "Iniciar Escaneo" y use su escáner de código de barras</p>
+                    
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="input-group input-group-lg mb-3">
+                                <input type="text" class="form-control form-control-lg" id="barcode-input" 
+                                       placeholder="Código de barras" disabled
+                                       aria-label="Código de barras">
+                                <button class="btn btn-outline-secondary" type="button" id="manual-add-btn">
+                                    <i class="fas fa-plus me-1"></i>Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="alert alert-warning">
+                            <small>
+                                <i class="fas fa-lightbulb me-1"></i>
+                                <strong>Consejo:</strong> Si su escáner no funciona automáticamente, 
+                                active el modo escaneo y escriba el código manualmente.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-2"></i>Estadísticas en Tiempo Real
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-primary" id="total-scanned-items">0</h4>
+                                <small class="text-muted">Total Escaneados</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-success" id="correct-items">0</h4>
+                                <small class="text-muted">Correctos</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-warning" id="discrepancy-items">0</h4>
+                                <small class="text-muted">Con Discrepancia</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-info" id="unknown-items">0</h4>
+                                <small class="text-muted">No Identificados</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-history me-2"></i>Últimos Escaneos
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush" id="recent-scans">
+                        <!-- Recent scans will be inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>Información del Inventario
+                </div>
+                <div class="card-body">
+                    <p><strong>Fecha:</strong> <span class="inventory-date">No configurada</span></p>
+                    <p><strong>Tienda:</strong> <span class="inventory-store">No configurada</span></p>
+                    <p><strong>Responsable:</strong> <span class="inventory-responsible">No configurado</span></p>
+                    <p><strong>Productos teóricos:</strong> <span id="theoretical-count">0</span></p>
+                    <p><strong>Progreso:</strong> <span id="progress-text">0%</span></p>
+                    
+                    <div class="progress mt-2" style="height: 10px;">
+                        <div class="progress-bar" id="mini-progress-bar" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-outline-primary btn-sm" onclick="UI.loadSection('scanned-items')">
+                            <i class="fas fa-list me-1"></i>Ver Todos los Productos
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="UI.loadSection('reports')">
+                            <i class="fas fa-chart-bar me-1"></i>Ver Reportes
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-lightbulb me-2"></i>Consejos de Escaneo
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Asegure buena iluminación</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Mantenga el código de barras limpio</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Escane a distancia adecuada (10-20 cm)</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Verifique que el código no esté dañado</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Use el modo manual si hay problemas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Actualizar estadísticas en tiempo real para la sección de escaneo
+function updateScanningStats() {
+    const scanned = Inventory.getScanned();
+    const theoretical = Inventory.getTheoretical();
+    
+    // Contadores
+    let correct = 0;
+    let discrepancies = 0;
+    let unknown = 0;
+    
+    scanned.forEach(item => {
+        const theoreticalItem = theoretical.find(t => t.code === item.code);
+        if (!theoreticalItem) {
+            unknown++;
+        } else if (item.scannedQuantity === theoreticalItem.theoreticalQuantity) {
+            correct++;
+        } else {
+            discrepancies++;
+        }
+    });
+    
+    $('#total-scanned-items').text(scanned.length);
+    $('#correct-items').text(correct);
+    $('#discrepancy-items').text(discrepancies);
+    $('#unknown-items').text(unknown);
+    
+    // Progreso
+    const progress = theoretical.length > 0 ? 
+        Math.round((scanned.filter(s => theoretical.find(t => t.code === s.code)).length / theoretical.length) * 100) : 0;
+    $('#progress-text').text(progress + '%');
+    $('#mini-progress-bar').css('width', progress + '%');
+    
+    // Actualizar cada 2 segundos
+    setTimeout(updateScanningStats, 2000);
+}
+
+// Iniciar actualización de estadísticas cuando se carga la sección
+$(document).ready(function() {
+    if ($('#scanning-section').hasClass('active')) {
+        updateScanningStats();
+    }
+});
+</script>

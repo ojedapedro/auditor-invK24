@@ -1,0 +1,143 @@
+<div class="content-section active" id="inventory-setup-section">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Configuración de Inventario</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>Datos del Inventario
+                </div>
+                <div class="card-body">
+                    <form id="inventory-setup-form">
+                        <div class="mb-3">
+                            <label for="inventory-date-input" class="form-label">Fecha del Inventario</label>
+                            <input type="date" class="form-control" id="inventory-date-input" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="store-name" class="form-label">Nombre de la Tienda</label>
+                            <input type="text" class="form-control" id="store-name" placeholder="Ej: Tienda K24 Centro" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="responsible-person" class="form-label">Responsable</label>
+                            <input type="text" class="form-control" id="responsible-person" placeholder="Ej: Juan Pérez" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Guardar Configuración
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-database me-2"></i>Información Actual
+                </div>
+                <div class="card-body">
+                    <p><strong>Fecha:</strong> <span class="inventory-date">No configurada</span></p>
+                    <p><strong>Tienda:</strong> <span class="inventory-store">No configurada</span></p>
+                    <p><strong>Responsable:</strong> <span class="inventory-responsible">No configurado</span></p>
+                    <p><strong>Productos cargados:</strong> <span id="loaded-products-count">0</span></p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-success" onclick="UI.loadSection('scanning')">
+                            <i class="fas fa-play me-1"></i>Comenzar Escaneo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-file-excel me-2"></i>Cargar Inventario Teórico
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-1"></i>Formato Requerido</h6>
+                        <p class="mb-1">El archivo Excel debe contener al menos estas columnas:</p>
+                        <ul class="mb-0">
+                            <li><strong>Código</strong> - Código de barras del producto</li>
+                            <li><strong>Producto</strong> - Nombre del producto</li>
+                            <li><strong>Cantidad</strong> - Cantidad teórica en inventario</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="excel-file" class="form-label">Seleccionar archivo Excel</label>
+                        <input class="form-control" type="file" id="excel-file" accept=".xlsx, .xls">
+                        <div class="form-text">Formatos soportados: .xlsx, .xls</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button class="btn btn-success" id="load-excel-btn">
+                            <i class="fas fa-upload me-1"></i>Cargar Inventario
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4" id="excel-preview" style="display: none;">
+                        <h6><i class="fas fa-table me-1"></i>Vista previa del inventario:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="excel-preview-body">
+                                    <!-- Preview data will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-tools me-2"></i>Herramientas
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="downloadTemplate()">
+                            <i class="fas fa-download me-1"></i>Descargar Plantilla
+                        </button>
+                        <button class="btn btn-outline-warning" id="clear-scanned-btn">
+                            <i class="fas fa-broom me-1"></i>Limpiar Productos Escaneados
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadTemplate() {
+    // Crear datos de ejemplo para la plantilla
+    const templateData = [
+        { Código: '7501001234567', Producto: 'Arroz Integral 1kg', Cantidad: 50 },
+        { Código: '7501001234568', Producto: 'Aceite de Oliva 500ml', Cantidad: 30 },
+        { Código: '7501001234569', Producto: 'Azúcar Morena 1kg', Cantidad: 40 },
+        { Código: '7501001234570', Producto: 'Café Molido 250g', Cantidad: 25 },
+        { Código: '7501001234571', Producto: 'Leche Deslactosada 1L', Cantidad: 60 }
+    ];
+    
+    // Crear libro de trabajo
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    
+    // Agregar hoja al libro
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
+    
+    // Generar archivo y descargar
+    XLSX.writeFile(wb, 'Plantilla_Inventario_K24.xlsx');
+    
+    Utils.showNotification('Plantilla descargada correctamente', 'success');
+}
+</script>

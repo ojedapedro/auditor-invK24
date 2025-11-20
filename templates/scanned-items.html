@@ -1,0 +1,231 @@
+<div class="content-section active" id="scanned-items-section">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Productos Escaneados</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button class="btn btn-sm btn-outline-danger" id="clear-scanned-btn">
+                    <i class="fas fa-trash me-1"></i>Limpiar Todo
+                </button>
+            </div>
+            <div class="btn-group me-2">
+                <span class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-box me-1"></i>Total: <span id="total-scanned-count">0</span> productos
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body text-center py-3">
+                    <h5 class="card-title mb-1" id="total-items">0</h5>
+                    <small class="text-muted">Total Items</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center py-3">
+                    <h5 class="card-title mb-1" id="correct-scanned">0</h5>
+                    <small>Correctos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center py-3">
+                    <h5 class="card-title mb-1" id="discrepancy-scanned">0</h5>
+                    <small>Con Discrepancia</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center py-3">
+                    <h5 class="card-title mb-1" id="unknown-scanned">0</h5>
+                    <small>No Identificados</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-list me-2"></i>Lista de Productos Escaneados</span>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary" onclick="exportScannedToCSV()">
+                    <i class="fas fa-download me-1"></i>Exportar CSV
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="UI.loadSection('scanning')">
+                    <i class="fas fa-barcode me-1"></i>Seguir Escaneando
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="scanned-items-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Cant. Teórica</th>
+                            <th>Cant. Escaneada</th>
+                            <th>Diferencia</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Scanned items will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-filter me-2"></i>Filtros Rápidos
+                </div>
+                <div class="card-body">
+                    <div class="btn-group w-100" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterScanned('all')">
+                            Todos
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="filterScanned('correct')">
+                            Correctos
+                        </button>
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="filterScanned('discrepancy')">
+                            Discrepancias
+                        </button>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="filterScanned('unknown')">
+                            No Identificados
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-2"></i>Resumen
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <small class="text-muted">Precisión</small>
+                            <h5 id="accuracy-rate">0%</h5>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Completitud</small>
+                            <h5 id="completion-rate-scanned">0%</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateScannedStats() {
+    const scanned = Inventory.getScanned();
+    const theoretical = Inventory.getTheoretical();
+    
+    let correct = 0;
+    let discrepancies = 0;
+    let unknown = 0;
+    
+    scanned.forEach(item => {
+        const theoreticalItem = theoretical.find(t => t.code === item.code);
+        if (!theoreticalItem) {
+            unknown++;
+        } else if (item.scannedQuantity === theoreticalItem.theoreticalQuantity) {
+            correct++;
+        } else {
+            discrepancies++;
+        }
+    });
+    
+    $('#total-scanned-count').text(scanned.length);
+    $('#total-items').text(scanned.length);
+    $('#correct-scanned').text(correct);
+    $('#discrepancy-scanned').text(discrepancies);
+    $('#unknown-scanned').text(unknown);
+    
+    // Calcular precisión y completitud
+    const accuracy = scanned.length > 0 ? Math.round((correct / scanned.length) * 100) : 0;
+    const completion = theoretical.length > 0 ? 
+        Math.round((scanned.filter(s => theoretical.find(t => t.code === s.code)).length / theoretical.length) * 100) : 0;
+    
+    $('#accuracy-rate').text(accuracy + '%');
+    $('#completion-rate-scanned').text(completion + '%');
+    
+    // Actualizar cada 3 segundos
+    setTimeout(updateScannedStats, 3000);
+}
+
+function filterScanned(type) {
+    const table = $('#scanned-items-table').DataTable();
+    
+    switch(type) {
+        case 'all':
+            table.search('').draw();
+            break;
+        case 'correct':
+            table.column(5).search('Correcto').draw();
+            break;
+        case 'discrepancy':
+            table.column(5).search('Exceso|Faltante').draw();
+            break;
+        case 'unknown':
+            table.column(5).search('No identificado', true, false).draw();
+            break;
+    }
+}
+
+function exportScannedToCSV() {
+    const scanned = Inventory.getScanned();
+    const theoretical = Inventory.getTheoretical();
+    
+    if (scanned.length === 0) {
+        Utils.showNotification('No hay datos para exportar', 'warning');
+        return;
+    }
+    
+    const data = scanned.map(item => {
+        const theoreticalItem = theoretical.find(t => t.code === item.code);
+        const difference = item.scannedQuantity - (theoreticalItem ? theoreticalItem.theoreticalQuantity : 0);
+        const status = theoreticalItem ? 
+            (difference === 0 ? 'Correcto' : (difference > 0 ? 'Exceso' : 'Faltante')) : 
+            'No identificado';
+            
+        return {
+            'Código': item.code,
+            'Producto': item.name,
+            'Cantidad_Teorica': theoreticalItem ? theoreticalItem.theoreticalQuantity : 0,
+            'Cantidad_Escaneada': item.scannedQuantity,
+            'Diferencia': difference,
+            'Estado': status,
+            'Fecha_Escaneo': new Date().toISOString()
+        };
+    });
+    
+    const config = Inventory.getConfig();
+    const filename = `Productos_Escaneados_${config.store || 'Tienda'}_${config.date || new Date().toISOString().split('T')[0]}.csv`;
+    
+    Utils.exportToCSV(data, filename);
+    Utils.showNotification('CSV exportado correctamente', 'success');
+}
+
+// Iniciar actualización de estadísticas cuando se carga la sección
+$(document).ready(function() {
+    if ($('#scanned-items-section').hasClass('active')) {
+        updateScannedStats();
+        Inventory.updateScannedTable();
+    }
+});
+</script>
