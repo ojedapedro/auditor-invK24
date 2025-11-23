@@ -23,6 +23,12 @@
                             <label for="responsible-person" class="form-label">Responsable</label>
                             <input type="text" class="form-control" id="responsible-person" placeholder="Ej: Juan Pérez" required>
                         </div>
+                        <!-- CAMPO DE OBSERVACIONES AGREGADO -->
+                        <div class="mb-3">
+                            <label for="inventory-observations" class="form-label">Observaciones</label>
+                            <textarea class="form-control" id="inventory-observations" rows="3" placeholder="Observaciones generales del inventario..."></textarea>
+                            <div class="form-text">Información adicional relevante sobre este inventario</div>
+                        </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i>Guardar Configuración
@@ -40,6 +46,7 @@
                     <p><strong>Fecha:</strong> <span class="inventory-date">No configurada</span></p>
                     <p><strong>Tienda:</strong> <span class="inventory-store">No configurada</span></p>
                     <p><strong>Responsable:</strong> <span class="inventory-responsible">No configurado</span></p>
+                    <p><strong>Observaciones:</strong> <span id="current-observations">No especificadas</span></p>
                     <p><strong>Productos cargados:</strong> <span id="loaded-products-count">0</span></p>
                     <div class="d-grid gap-2">
                         <button class="btn btn-outline-success" onclick="UI.loadSection('scanning')">
@@ -51,6 +58,7 @@
         </div>
         
         <div class="col-md-6">
+            <!-- El resto del contenido permanece igual -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-file-excel me-2"></i>Cargar Inventario Teórico
